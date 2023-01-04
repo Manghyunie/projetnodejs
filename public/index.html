@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chat app</title>
+</head>
+<body>
+    <h1>My chat app</h1>
+    <i id="chat-status"></i>
+    <div id="message-list"></div>
+    <form>
+        <input type="text" id="chat-input" />
+        <button type="submit">Send</button>
+    </form>
+    <style>
+        #chat-status {
+            display: block;
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+        }
+    </style>
+    <script>
+        
+        const messageList = document.getElementById('message-list');
+        const chatStatus = document.getElementById('chat-status');
+        
+        let ws
+
+        function connect() {
+            const ws = new WebSocket('ws://localhost:3000/ws');
+
+            ws.onopen = () => {
+            console.log('Connected');
+            chatStatus.style.backgroundColor = 'green';
+            }
+
+            ws.onclose = () => {
+            console.log('disconnected');
+            chatStatus.style.backgroundColor = 'red';
+            setTimeout(connect, 1000);
+            };
+
+            ws.onerror = (error) => {
+                console.log('error', error);
+            };
+
+              ws.onmessage = (event) => {
+            console.log('message from server', event.data);
+            addMessage(event.data);
+            };
+
+
+        }
+
+        connect()
+
+        function addMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messageList.appendChild(messageElement);
+        }
+
+
+        document.querySelector('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.querySelector('#chat-input');
+            addMessage(input.value);
+            ws.send(input.value);
+            input.value = '';
+        });
+    </script>
+</body>
+</html>
